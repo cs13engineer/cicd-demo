@@ -11,8 +11,8 @@ app.get(`/`, (req, res)=>{
 
 app.get(`/:name`,(req, res)=>{
 	const name = req.params.name;
-	console.log(`Recieved name is ${name}`);
-	res.send({status:true, msg: `Recieved Name is ${name}`});
+	console.log(`The name '${name}' was received in current request.`);
+	res.send({status:true, msg: `The name recieved in current request was : ${name}`});
 })
 
 app.listen(PORT,()=>{ console.log(`App is running on ${PORT}`)})
