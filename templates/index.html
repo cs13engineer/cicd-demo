@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<script>
+    const data = []
+    function getUserData() {
+        fetch(`/users`)
+        .then(response => response.json())
+        .then(data =>{
+            console.log("success data: " ,  data)
+            data = data.data
+            alert(`Server says: ${data.msg}`)
+        })
+        .catch(error=>{
+            console.log("Error : ", error)
+        })
+    }
+</script>
+<body>
+    <h1> Welcome to the CI/CD services</h1>
+
+    <button onclick="getUserData">  Get User Data </button>
+</body>
+</html>
