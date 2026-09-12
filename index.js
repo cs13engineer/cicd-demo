@@ -1,6 +1,6 @@
 import express from 'express'
 import path from 'path'
-import data from './data/index'
+import data from './data/index.js'
 const app = express()
 const PORT = process.env.PORT ?? "8090"
 
