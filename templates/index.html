@@ -3,26 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<script>
-    const data = []
-    function getUserData() {
-        fetch(`/users`)
-        .then(response => response.json())
-        .then(data =>{
-            console.log("success data: " ,  data)
-            data = data.data
-            alert(`Server says: ${data.msg}`)
-        })
-        .catch(error=>{
-            console.log("Error : ", error)
-        })
-    }
-</script>
-<body>
-    <h1> Welcome to the CI/CD services</h1>
+    <title>User List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+        }
 
-    <button onclick="getUserData">  Get User Data </button>
+        table {
+            width: 60%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        tbody tr {
+            cursor: pointer;
+        }
+
+        tbody tr:hover {
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to the CI/CD services</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Designation</th>
+            </tr>
+        </thead>
+        <tbody id="userTableBody"></tbody>
+    </table>
+
+    <script>
+        async function getUserData() {
+            try {
+                const response = await fetch('/users');
+                const result = await response.json();
+
+                if (!result.status) {
+                    throw new Error(result.msg || 'No user data found.');
+                }
+
+                const users = result.data || [];
+                const tableBody = document.getElementById('userTableBody');
+
+                tableBody.innerHTML = users.map((user) => `
+                    <tr data-username="${user.username}">
+                        <td>${user.name}</td>
+                        <td>${user.designation}</td>
+                    </tr>
+                `).join('');
+
+                tableBody.querySelectorAll('tr').forEach((row) => {
+                    row.addEventListener('click', () => {
+                        const username = row.dataset.username;
+                        window.location.href = `/user-details?username=${encodeURIComponent(username)}`;
+                    });
+                });
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('userTableBody').innerHTML = `
+                    <tr>
+                        <td colspan="2">Unable to load user data.</td>
+                    </tr>
+                `;
+            }
+        }
+
+        getUserData();
+    </script>
 </body>
 </html>

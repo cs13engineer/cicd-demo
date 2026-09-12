@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Details</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+        }
+
+        .card {
+            max-width: 500px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            background: #fafafa;
+        }
+
+        .row {
+            margin-bottom: 10px;
+        }
+
+        .label {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>User Details</h1>
+    <div id="userDetails" class="card"></div>
+
+    <script>
+        function getUserFromQuery() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('username');
+        }
+
+        async function loadUserDetails() {
+            const username = getUserFromQuery();
+            const container = document.getElementById('userDetails');
+
+            if (!username) {
+                container.innerHTML = '<p>No user selected.</p>';
+                return;
+            }
+
+            try {
+                const response = await fetch('/users');
+                const result = await response.json();
+
+                if (!result.status) {
+                    throw new Error(result.msg || 'No user data found.');
+                }
+
+                const user = (result.data || []).find((item) => item.username === username);
+
+                if (!user) {
+                    container.innerHTML = '<p>User not found.</p>';
+                    return;
+                }
+
+                container.innerHTML = `
+                    <div class="row"><span class="label">Username:</span> ${user.username}</div>
+                    <div class="row"><span class="label">Name:</span> ${user.name}</div>
+                    <div class="row"><span class="label">Designation:</span> ${user.designation}</div>
+                    <div class="row"><span class="label">Hobbies:</span> ${(user.hobies || []).join(', ')}</div>
+                    <div class="row"><span class="label">Password:</span> ${user.password}</div>
+                `;
+            } catch (error) {
+                console.error('Error:', error);
+                container.innerHTML = '<p>Unable to load user details.</p>';
+            }
+        }
+
+        loadUserDetails();
+    </script>
+</body>
+</html>
