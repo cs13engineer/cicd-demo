@@ -1,0 +1,11 @@
+services:
+  ci-cd-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cicd-app
+    ports:
+      - "8090:4000"
+    environment:
+      - PORT=4000
+
