@@ -10,16 +10,7 @@ const __dirname = path.dirname(__filename)
 
 app.get(`/`, (req, res)=>{
 	console.log("The workflow is running");
-	// res.send("Welocome to CI/CD app")
-	//sending html template as a response
-
 	res.sendFile(path.join(__dirname, 'templates', 'index.html'))
-})
-
-app.get(`/:name`,(req, res)=>{
-	const name = req.params.name;
-	console.log(`The name '${name}' was received in current request.`);
-	res.send({status:true, msg: `The name recieved in current request was : ${name}`});
 })
 
 // fetch user data
@@ -34,6 +25,16 @@ app.get('/users',(req, res)=>{
 		msg: "data fetched successfully",
 		data
 	})
+})
+
+app.get('/user-details', (req, res)=>{
+	res.sendFile(path.join(__dirname, 'templates', 'user-details.html'))
+})
+
+app.get(`/:name`,(req, res)=>{
+	const name = req.params.name;
+	console.log(`The name '${name}' was received in current request.`);
+	res.send({status:true, msg: `The name recieved in current request was : ${name}`});
 })
 
 app.listen(PORT,()=>{ console.log(`App is running on ${PORT}`)})
