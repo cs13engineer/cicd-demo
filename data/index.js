@@ -1,4 +1,4 @@
-module.exports = [
+const users = [
     {
         username: "johnd",
         password: "johndoe123",
@@ -7,3 +7,5 @@ module.exports = [
         hobies:["Learning new things"]
     }
 ]
+
+export default users

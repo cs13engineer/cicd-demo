@@ -1,8 +1,12 @@
 import express from 'express'
 import path from 'path'
+import { fileURLToPath } from 'url'
 import data from './data/index.js'
+
 const app = express()
 const PORT = process.env.PORT ?? "8090"
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 app.get(`/`, (req, res)=>{
 	console.log("The workflow is running");
