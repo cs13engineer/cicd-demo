@@ -20,6 +20,11 @@ app.get('/users',(req, res)=>{
 		return res.send({status:false, msg:"No user data found."})
 	}
 
+	data.forEach((items)=>{
+		delete items.password; // removing password field from the  repsonse 
+		
+	})
+
 	return res.send({
 		status: true,
 		msg: "data fetched successfully",
