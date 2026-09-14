@@ -8,22 +8,68 @@
         body {
             font-family: Arial, sans-serif;
             margin: 40px;
+            background: #f5f7fb;
+            color: #1f2937;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .dashboard-title {
+            margin: 0;
+            font-size: 2rem;
+        }
+
+        .count-badge {
+            background: #dbeafe;
+            color: #1d4ed8;
+            border-radius: 999px;
+            padding: 8px 14px;
+            font-weight: 700;
+            margin-left: 12px;
+        }
+
+        .add-user-btn {
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .add-user-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .panel {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+            padding: 20px;
+            max-width: 900px;
         }
 
         table {
-            width: 60%;
+            width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
 
         th, td {
-            border: 1px solid #ccc;
+            border: 1px solid #e5e7eb;
             padding: 12px;
             text-align: left;
         }
 
         th {
-            background-color: #f2f2f2;
+            background-color: #f8fafc;
         }
 
         tbody tr {
@@ -31,24 +77,193 @@
         }
 
         tbody tr:hover {
-            background-color: #f9f9f9;
+            background-color: #f8fafc;
+        }
+
+        .remove-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .remove-btn:hover {
+            background: #dc2626;
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.visible {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: min(100%, 500px);
+            padding: 24px;
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .field.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .field label {
+            font-weight: 600;
+        }
+
+        .field input {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            font-size: 0.95rem;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .secondary-btn {
+            background: #e5e7eb;
+            color: #111827;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .primary-btn {
+            background: #16a34a;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .error-message {
+            color: #b91c1c;
+            min-height: 20px;
+            margin-top: 12px;
+            font-weight: 600;
         }
     </style>
 </head>
 <body>
-    <h1>Welcome to the CI/CD services</h1>
+    <div class="top-bar">
+        <div style="display: flex; align-items: center;">
+            <h1 class="dashboard-title">Welcome to the CI/CD services</h1>
+            <span id="userCount" class="count-badge">0 users</span>
+        </div>
+        <button id="addUserBtn" class="add-user-btn">+ Add User</button>
+    </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Designation</th>
-            </tr>
-        </thead>
-        <tbody id="userTableBody"></tbody>
-    </table>
+    <div class="panel">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Designation</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="userTableBody"></tbody>
+        </table>
+    </div>
+
+    <div id="userModal" class="modal" aria-hidden="true">
+        <div class="modal-content">
+            <h2>Add New User</h2>
+            <form id="userForm">
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="username">Username</label>
+                        <input id="username" name="username" type="text" required>
+                    </div>
+                    <div class="field">
+                        <label for="password">Password</label>
+                        <input id="password" name="password" type="password" required>
+                    </div>
+                    <div class="field">
+                        <label for="name">Name</label>
+                        <input id="name" name="name" type="text" required>
+                    </div>
+                    <div class="field">
+                        <label for="designation">Designation</label>
+                        <input id="designation" name="designation" type="text" required>
+                    </div>
+                    <div class="field full-width">
+                        <label for="hobbies">Hobbies</label>
+                        <input id="hobbies" name="hobbies" type="text" placeholder="e.g. Reading, Traveling">
+                    </div>
+                </div>
+                <div class="error-message" id="formError"></div>
+                <div class="actions">
+                    <button type="button" class="secondary-btn" id="cancelBtn">Cancel</button>
+                    <button type="submit" class="primary-btn">Save User</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <script>
+        const userCount = document.getElementById('userCount');
+        const userTableBody = document.getElementById('userTableBody');
+        const addUserBtn = document.getElementById('addUserBtn');
+        const userModal = document.getElementById('userModal');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const userForm = document.getElementById('userForm');
+        const formError = document.getElementById('formError');
+
+        function updateUserCount(users) {
+            userCount.textContent = `${users.length} user${users.length === 1 ? '' : 's'}`;
+        }
+
+        function openModal() {
+            userModal.classList.add('visible');
+            userModal.setAttribute('aria-hidden', 'false');
+            document.getElementById('username').focus();
+        }
+
+        function closeModal() {
+            userModal.classList.remove('visible');
+            userModal.setAttribute('aria-hidden', 'true');
+            userForm.reset();
+            formError.textContent = '';
+        }
+
         async function getUserData() {
             try {
                 const response = await fetch('/users');
@@ -59,30 +274,123 @@
                 }
 
                 const users = result.data || [];
-                const tableBody = document.getElementById('userTableBody');
+                updateUserCount(users);
 
-                tableBody.innerHTML = users.map((user) => `
+                if (!users.length) {
+                    userTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="3">No users found.</td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                userTableBody.innerHTML = users.map((user) => `
                     <tr data-username="${user.username}">
                         <td>${user.name}</td>
                         <td>${user.designation}</td>
+                        <td>
+                            <button type="button" class="remove-btn" data-username="${user.username}">Remove</button>
+                        </td>
                     </tr>
                 `).join('');
 
-                tableBody.querySelectorAll('tr').forEach((row) => {
-                    row.addEventListener('click', () => {
+                userTableBody.querySelectorAll('tr').forEach((row) => {
+                    row.addEventListener('click', (event) => {
+                        if (event.target.closest('.remove-btn')) {
+                            return;
+                        }
+
                         const username = row.dataset.username;
                         window.location.href = `/user-details?username=${encodeURIComponent(username)}`;
                     });
                 });
+
+                userTableBody.querySelectorAll('.remove-btn').forEach((button) => {
+                    button.addEventListener('click', async (event) => {
+                        event.stopPropagation();
+                        const username = button.dataset.username;
+
+                        const confirmed = window.confirm(`Are you sure you want to remove ${username}?`);
+                        if (!confirmed) {
+                            return;
+                        }
+
+                        try {
+                            const response = await fetch(`/users/${encodeURIComponent(username)}`, {
+                                method: 'DELETE'
+                            });
+                            const result = await response.json();
+
+                            if (!result.status) {
+                                throw new Error(result.msg || 'Unable to remove user.');
+                            }
+
+                            await getUserData();
+                        } catch (error) {
+                            console.error('Error removing user:', error);
+                            alert(error.message || 'Unable to remove user.');
+                        }
+                    });
+                });
             } catch (error) {
                 console.error('Error:', error);
-                document.getElementById('userTableBody').innerHTML = `
+                userTableBody.innerHTML = `
                     <tr>
-                        <td colspan="2">Unable to load user data.</td>
+                        <td colspan="3">Unable to load user data.</td>
                     </tr>
                 `;
+                updateUserCount([]);
             }
         }
+
+        addUserBtn.addEventListener('click', openModal);
+        cancelBtn.addEventListener('click', closeModal);
+        userModal.addEventListener('click', (event) => {
+            if (event.target === userModal) {
+                closeModal();
+            }
+        });
+
+        userForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            formError.textContent = '';
+
+            const formData = new FormData(userForm);
+            const hobbies = (formData.get('hobbies') || '')
+                .split(',')
+                .map((hobby) => hobby.trim())
+                .filter(Boolean);
+
+            const payload = {
+                username: formData.get('username'),
+                password: formData.get('password'),
+                name: formData.get('name'),
+                designation: formData.get('designation'),
+                hobbies
+            };
+
+            try {
+                const response = await fetch('/users', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok || !result.status) {
+                    throw new Error(result.msg || 'Unable to add user.');
+                }
+
+                closeModal();
+                await getUserData();
+            } catch (error) {
+                formError.textContent = error.message || 'Unable to add user.';
+            }
+        });
 
         getUserData();
     </script>
