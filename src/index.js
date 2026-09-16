@@ -1,7 +1,7 @@
 import express from 'express'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import data from './data/index.js'
+import data from '../data/index.js'
 
 const app = express()
 const PORT = process.env.PORT ?? "8090"
@@ -29,7 +29,7 @@ const sendUsers = (res) => {
 
 app.get(`/`, (req, res)=>{
 	console.log("The workflow is running");
-	res.sendFile(path.join(__dirname, 'templates', 'index.html'))
+	res.sendFile(path.join(__dirname, '../templates', 'index.html'))
 })
 
 // fetch user data
@@ -96,7 +96,7 @@ app.delete('/users/:username', (req, res)=>{
 })
 
 app.get('/user-details', (req, res)=>{
-	res.sendFile(path.join(__dirname, 'templates', 'user-details.html'))
+	res.sendFile(path.join(__dirname, '../templates', 'user-details.html'))
 })
 
 app.get(`/:name`,(req, res)=>{
@@ -105,4 +105,10 @@ app.get(`/:name`,(req, res)=>{
 	res.send({status:true, msg: `The name recieved in current request was : ${name}`});
 })
 
-app.listen(PORT,()=>{ console.log(`App is running on ${PORT}`)})
+app.listen(PORT,()=>{ 
+	try{
+		console.log(`App is running on ${PORT} my server is up and running!`)
+	}catch(error){
+		console.log("Error: ", error)
+	}
+})
