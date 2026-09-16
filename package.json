@@ -3,25 +3,24 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "type":"module",
+  "type": "module",
   "scripts": {
-    "dev": "node index.js"
+    "dev": "node index.js",
+    "test": "mocha"
   },
   "repository": {
-    "type": "git",
-    "url": "git+https://github.com/cs13engineer/cicd-demo.git"
+    "type": "git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/cs13engineer/cicd-demo/issues"
-  },
-  "homepage": "https://github.com/cs13engineer/cicd-demo#readme",
   "dependencies": {
     "express": "^5.2.1"
   },
   "devDependencies": {
-    "@types/express": "^5.0.6"
+    "@types/express": "^5.0.6",
+    "chai": "^6.2.2",
+    "mocha": "^12.0.1",
+    "supertest": "^7.2.2"
   }
 }
