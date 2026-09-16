@@ -4,11 +4,9 @@ import { fileURLToPath } from 'url'
 import data from '../data/index.js'
 
 const app = express()
-const PORT = process.env.PORT ?? "8090"
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const users = data
-
 app.use(express.json())
 
 const sanitizeUser = (user) => {
@@ -20,11 +18,23 @@ const sanitizeUser = (user) => {
 }
 
 const sendUsers = (res) => {
-	res.send({
-		status: true,
-		msg: "data fetched successfully",
-		data: users.map(sanitizeUser)
-	})
+	try{
+		const userList = users.map(sanitizeUser)
+		if(!userList || userList.length === 0){
+			return res.status(404).send({status:false, msg:"no user found"})
+		}
+
+		res.status(200).send({
+			status: true,
+			msg: "data fetched successfully",
+			data: userList
+		})
+	}catch(error){
+		return res.status(500).send({
+			status: false,
+			msg: "internal server error!"
+		})
+	}
 }
 
 app.get(`/`, (req, res)=>{
@@ -105,10 +115,5 @@ app.get(`/:name`,(req, res)=>{
 	res.send({status:true, msg: `The name recieved in current request was : ${name}`});
 })
 
-app.listen(PORT,()=>{ 
-	try{
-		console.log(`App is running on ${PORT} my server is up and running!`)
-	}catch(error){
-		console.log("Error: ", error)
-	}
-})
+
+export default app;
