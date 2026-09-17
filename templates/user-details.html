@@ -3,33 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Details</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-        }
-
-        .card {
-            max-width: 500px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            padding: 20px;
-            background: #fafafa;
-        }
-
-        .row {
-            margin-bottom: 10px;
-        }
-
-        .label {
-            font-weight: bold;
-        }
-    </style>
+    <title>User Details | CI/CD Services</title>
+    <link rel="stylesheet" href="/css/app.css">
 </head>
-<body>
-    <h1>User Details</h1>
-    <div id="userDetails" class="card"></div>
+<body class="app-shell">
+    <header class="app-header">
+        <a class="brand" href="/" aria-label="CI/CD Services home">
+            <span class="brand-mark">C</span> CI/CD SERVICES
+        </a>
+        <nav class="app-nav" aria-label="Main navigation">
+            <a class="nav-link nav-link-active" href="/client">Client</a>
+            <a class="nav-link" href="/admin">Admin</a>
+        </nav>
+        <span class="header-note">Team member profile</span>
+    </header>
+
+    <main class="app-main">
+        <div class="page-heading">
+            <div>
+                <p class="eyebrow">Directory</p>
+                <h1>User details</h1>
+                <p class="page-description">A closer look at this team member.</p>
+            </div>
+        </div>
+        <section id="userDetails" class="detail-card" aria-live="polite"></section>
+    </main>
 
     <script>
         function getUserFromQuery() {
@@ -47,7 +45,7 @@
             }
 
             try {
-                const response = await fetch('/users');
+                const response = await fetch('/api/users');
                 const result = await response.json();
 
                 if (!result.status) {
@@ -62,10 +60,9 @@
                 }
 
                 container.innerHTML = `
-                    <div class="row"><span class="label">Username:</span> ${user.username}</div>
-                    <div class="row"><span class="label">Name:</span> ${user.name}</div>
-                    <div class="row"><span class="label">Designation:</span> ${user.designation}</div>
-                    <div class="row"><span class="label">Hobbies:</span> ${(user.hobies || []).join(', ')}</div>
+                    <div class="detail-row"><span class="detail-label">Username</span><span>${user.username}</span></div>
+                    <div class="detail-row"><span class="detail-label">Name</span><span>${user.name || `${user.firstName || ''} ${user.lastName || ''}`}</span></div>
+                    <div class="detail-row"><span class="detail-label">Role</span><span>${user.userType || user.user_type}</span></div>
                 `;
             } catch (error) {
                 console.error('Error:', error);

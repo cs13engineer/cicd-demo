@@ -4,8 +4,35 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: cicd-app
+    env_file:
+      - .env
     ports:
       - "8090:4000"
     environment:
-      - PORT=4000
+      PORT: 4000
+      DB_HOST: mysql
+      DB_PORT: 3306
+    depends_on:
+      mysql:
+        condition: service_healthy
 
+  mysql:
+    image: mysql:8.4
+    container_name: restaurant-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-restaurantManagement}
+      MYSQL_USER: ${DB_USER:-amol}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-amol}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-amol}
+    volumes:
+      - restaurant-mysql-data:/var/lib/mysql
+      - ./shema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u$${MYSQL_USER} -p$${MYSQL_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  restaurant-mysql-data:

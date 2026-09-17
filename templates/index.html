@@ -3,209 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User List</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-            background: #f5f7fb;
-            color: #1f2937;
-        }
-
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .dashboard-title {
-            margin: 0;
-            font-size: 2rem;
-        }
-
-        .count-badge {
-            background: #dbeafe;
-            color: #1d4ed8;
-            border-radius: 999px;
-            padding: 8px 14px;
-            font-weight: 700;
-            margin-left: 12px;
-        }
-
-        .add-user-btn {
-            background: #2563eb;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            padding: 10px 16px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .add-user-btn:hover {
-            background: #1d4ed8;
-        }
-
-        .panel {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
-            padding: 20px;
-            max-width: 900px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th, td {
-            border: 1px solid #e5e7eb;
-            padding: 12px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #f8fafc;
-        }
-
-        tbody tr {
-            cursor: pointer;
-        }
-
-        tbody tr:hover {
-            background-color: #f8fafc;
-        }
-
-        .remove-btn {
-            background: #ef4444;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 8px 12px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        .remove-btn:hover {
-            background: #dc2626;
-        }
-
-        .modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(15, 23, 42, 0.55);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .modal.visible {
-            display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 12px;
-            width: min(100%, 500px);
-            padding: 24px;
-        }
-
-        .modal-content h2 {
-            margin-top: 0;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-
-        .field {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .field.full-width {
-            grid-column: 1 / -1;
-        }
-
-        .field label {
-            font-weight: 600;
-        }
-
-        .field input {
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
-            font-size: 0.95rem;
-        }
-
-        .actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-            margin-top: 20px;
-        }
-
-        .secondary-btn {
-            background: #e5e7eb;
-            color: #111827;
-            border: none;
-            border-radius: 8px;
-            padding: 10px 16px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        .primary-btn {
-            background: #16a34a;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 10px 16px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        .error-message {
-            color: #b91c1c;
-            min-height: 20px;
-            margin-top: 12px;
-            font-weight: 600;
-        }
-    </style>
+    <title>CI/CD Services | Users</title>
+    <link rel="stylesheet" href="/css/app.css">
 </head>
-<body>
-    <div class="top-bar">
-        <div style="display: flex; align-items: center;">
-            <h1 class="dashboard-title">Welcome to the CI/CD services</h1>
-            <span id="userCount" class="count-badge">0 users</span>
-        </div>
-        <button id="addUserBtn" class="add-user-btn">+ Add User</button>
-    </div>
+<body class="app-shell">
+    <header class="app-header">
+        <a class="brand" href="/" aria-label="CI/CD Services home">
+            <span class="brand-mark">C</span> CI/CD SERVICES
+        </a>
+        <nav class="app-nav" aria-label="Main navigation">
+            <a class="nav-link nav-link-active" href="/client">Client</a>
+            <a class="nav-link" href="/admin">Admin</a>
+        </nav>
+        <span class="header-note">A calm space for your delivery team</span>
+    </header>
 
-    <div class="panel">
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Designation</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="userTableBody"></tbody>
-        </table>
-    </div>
+    <main class="app-main">
+        <div class="page-heading">
+            <div>
+                <p class="eyebrow">Team directory</p>
+                <h1 id="dashboardTitle">Welcome to CI/CD services</h1>
+                <p class="page-description">Keep your people and their roles close at hand.</p>
+            </div>
+            <div>
+            <span id="userCount" class="count-badge">0 users</span>
+            </div>
+        </div>
+
+        <section class="panel" aria-labelledby="directory-title">
+            <div class="panel-header page-heading">
+                <div>
+                    <p class="eyebrow">People</p>
+                    <h2 id="directory-title">Team directory</h2>
+                </div>
+                <button id="addUserBtn" class="button button-primary">+ Add user</button>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Designation</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTableBody"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
 
     <div id="userModal" class="modal" aria-hidden="true">
         <div class="modal-content">
-            <h2>Add New User</h2>
+            <h2>Add new user</h2>
+            <p class="modal-description">Add a teammate to the shared directory.</p>
             <form id="userForm">
                 <div class="form-grid">
                     <div class="field">
@@ -231,8 +82,8 @@
                 </div>
                 <div class="error-message" id="formError"></div>
                 <div class="actions">
-                    <button type="button" class="secondary-btn" id="cancelBtn">Cancel</button>
-                    <button type="submit" class="primary-btn">Save User</button>
+                    <button type="button" class="button button-secondary" id="cancelBtn">Cancel</button>
+                    <button type="submit" class="button button-primary">Save user</button>
                 </div>
             </form>
         </div>
@@ -246,6 +97,15 @@
         const cancelBtn = document.getElementById('cancelBtn');
         const userForm = document.getElementById('userForm');
         const formError = document.getElementById('formError');
+        const expectedUserType = window.location.pathname.startsWith('/admin') ? 'admin' : 'client';
+        const signedInUserType = sessionStorage.getItem('userType');
+
+        if (signedInUserType !== expectedUserType) {
+            window.location.replace('/login');
+        }
+
+        document.getElementById('dashboardTitle').textContent = `${expectedUserType === 'admin' ? 'Admin' : 'Client'} dashboard`;
+        document.querySelector('.header-note').textContent = `Signed in as ${sessionStorage.getItem('username') || 'team member'}`;
 
         function updateUserCount(users) {
             userCount.textContent = `${users.length} user${users.length === 1 ? '' : 's'}`;
@@ -266,7 +126,7 @@
 
         async function getUserData() {
             try {
-                const response = await fetch('/users');
+                const response = await fetch('/api/users');
                 const result = await response.json();
 
                 if (!result.status) {
@@ -286,27 +146,27 @@
                 }
 
                 userTableBody.innerHTML = users.map((user) => `
-                    <tr data-username="${user.username}">
-                        <td>${user.name}</td>
-                        <td>${user.designation}</td>
+                    <tr data-user-id="${user.userId || user.user_id}" data-username="${user.username}">
+                        <td>${user.name || `${user.firstName || ''} ${user.lastName || ''}`}</td>
+                        <td>${user.designation || user.userType || user.user_type}</td>
                         <td>
-                            <button type="button" class="remove-btn" data-username="${user.username}">Remove</button>
+                            <button type="button" class="button button-danger" data-username="${user.username}">Remove</button>
                         </td>
                     </tr>
                 `).join('');
 
                 userTableBody.querySelectorAll('tr').forEach((row) => {
                     row.addEventListener('click', (event) => {
-                        if (event.target.closest('.remove-btn')) {
+                        if (event.target.closest('.button-danger')) {
                             return;
                         }
 
                         const username = row.dataset.username;
-                        window.location.href = `/user-details?username=${encodeURIComponent(username)}`;
+                        window.location.href = `/${expectedUserType}/user-details?username=${encodeURIComponent(username)}`;
                     });
                 });
 
-                userTableBody.querySelectorAll('.remove-btn').forEach((button) => {
+                userTableBody.querySelectorAll('.button-danger').forEach((button) => {
                     button.addEventListener('click', async (event) => {
                         event.stopPropagation();
                         const username = button.dataset.username;
@@ -317,7 +177,7 @@
                         }
 
                         try {
-                            const response = await fetch(`/users/${encodeURIComponent(username)}`, {
+                            const response = await fetch(`/api/users/${encodeURIComponent(button.closest('tr').dataset.userId)}`, {
                                 method: 'DELETE'
                             });
                             const result = await response.json();
@@ -363,15 +223,17 @@
                 .filter(Boolean);
 
             const payload = {
+                clientId: sessionStorage.getItem('clientId'),
+                userType: expectedUserType === 'admin' ? 'ADMIN' : 'WAITER',
                 username: formData.get('username'),
                 password: formData.get('password'),
-                name: formData.get('name'),
-                designation: formData.get('designation'),
-                hobbies
+                firstName: formData.get('name'),
+                lastName: '',
+                age: null
             };
 
             try {
-                const response = await fetch('/users', {
+                const response = await fetch('/api/users', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

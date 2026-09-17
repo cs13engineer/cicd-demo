@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome | CI/CD Services</title>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body class="app-shell auth-shell">
+    <main class="auth-layout">
+        <section class="auth-intro">
+            <a class="brand" href="/" aria-label="CI/CD Services home">
+                <span class="brand-mark">C</span> CI/CD SERVICES
+            </a>
+            <div class="auth-intro-copy">
+                <p class="eyebrow">Welcome back</p>
+                <h1>One calm place for your delivery work.</h1>
+                <p class="page-description">Enter your client ID to continue to your workspace.</p>
+            </div>
+        </section>
+
+        <section class="auth-card" aria-labelledby="client-id-title">
+            <p class="eyebrow">Workspace access</p>
+            <h2 id="client-id-title">Enter your client ID</h2>
+            <p class="modal-description">Use the client ID provided by your organization.</p>
+            <form id="clientIdForm">
+                <div class="field">
+                    <label for="clientId">Client ID</label>
+                    <input id="clientId" name="clientId" type="text" placeholder="e.g. CICD-CLIENT" autocomplete="organization" required>
+                </div>
+                <p id="clientIdError" class="error-message" role="alert"></p>
+                <button class="button button-primary button-wide" type="submit">Continue</button>
+            </form>
+            <p class="auth-footer">New to the workspace? <a href="/register">Register here</a></p>
+        </section>
+    </main>
+    <script>
+        const form = document.getElementById('clientIdForm');
+        const errorMessage = document.getElementById('clientIdError');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            errorMessage.textContent = '';
+            const clientId = form.clientId.value.trim().toUpperCase();
+
+            try {
+                const response = await fetch('/auth/client-id', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ clientId })
+                });
+                const result = await response.json();
+                if (!response.ok || !result.status) throw new Error(result.msg || 'Unable to validate client ID.');
+                sessionStorage.setItem('clientId', result.clientId);
+                window.location.href = '/login';
+            } catch (error) {
+                errorMessage.textContent = error.message;
+            }
+        });
+    </script>
+</body>
+</html>
