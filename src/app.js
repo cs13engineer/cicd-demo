@@ -1,119 +1,35 @@
 import express from 'express'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import data from '../data/index.js'
+import authRoutes from './routes/authRoutes.js'
+import adminRoutes from './routes/adminRoutes.js'
+import waiterRoutes from './routes/waiterRoutes.js'
+import clientRoutes from './routes/clientRoutes.js'
+import resourceRoutes from './routes/resourceRoutes.js'
+import uiRoutes from './routes/uiRoutes.js'
+import userRoutes from './routes/userRoutes.js'
+import { asyncHandler } from './helpers/http.js'
+import { listUsers as listLegacyUsers } from './controllers/legacyController.js'
+import { errorHandler, notFound } from './middlewares/error.js'
 
 const app = express()
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-const users = data
-app.use(express.json())
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-const sanitizeUser = (user) => {
-	const { password, ...safeUser } = user
-	return {
-		...safeUser,
-		hobies: Array.isArray(user.hobies) ? [...user.hobies] : []
-	}
-}
+app.use(express.json({ limit: '1mb' }))
+app.use(express.urlencoded({ extended: true }))
+app.use(express.static(path.join(__dirname, '../public')))
 
-const sendUsers = (res) => {
-	try{
-		const userList = users.map(sanitizeUser)
-		if(!userList || userList.length === 0){
-			return res.status(404).send({status:false, msg:"no user found"})
-		}
+app.use('/auth', authRoutes)
+app.use('/api/users', userRoutes)
+app.use('/api/admin', adminRoutes)
+app.use('/api/waiter', waiterRoutes)
+app.use('/api', resourceRoutes)
+app.use('/api/clients', clientRoutes)
 
-		res.status(200).send({
-			status: true,
-			msg: "data fetched successfully",
-			data: userList
-		})
-	}catch(error){
-		return res.status(500).send({
-			status: false,
-			msg: "internal server error!"
-		})
-	}
-}
+// Compatibility endpoint for the original demo client.
+app.get('/users', asyncHandler(listLegacyUsers))
+app.use(uiRoutes)
+app.use(notFound)
+app.use(errorHandler)
 
-app.get(`/`, (req, res)=>{
-	console.log("The workflow is running");
-	res.sendFile(path.join(__dirname, '../templates', 'index.html'))
-})
-
-// fetch user data
-app.get('/users',(req, res)=>{
-	console.log("searching user data repo")
-	return sendUsers(res)
-})
-
-app.post('/users', (req, res)=>{
-	const { username, password, name, designation, hobbies } = req.body || {}
-
-	if (!username || !password || !name || !designation) {
-		return res.status(400).send({
-			status: false,
-			msg: 'username, password, name, and designation are required.'
-		})
-	}
-
-	const normalizedUsername = String(username).trim()
-	const existingUser = users.find((user) => user.username.toLowerCase() === normalizedUsername.toLowerCase())
-
-	if (existingUser) {
-		return res.status(409).send({
-			status: false,
-			msg: 'A user with this username already exists.'
-		})
-	}
-
-	const newUser = {
-		username: normalizedUsername,
-		password: String(password),
-		name: String(name).trim(),
-		designation: String(designation).trim(),
-		hobies: Array.isArray(hobbies) ? hobbies.map((item) => String(item).trim()).filter(Boolean) : []
-	}
-
-	users.push(newUser)
-
-	return res.status(201).send({
-		status: true,
-		msg: 'User added successfully.',
-		data: sanitizeUser(newUser)
-	})
-})
-
-app.delete('/users/:username', (req, res)=>{
-	const username = String(req.params.username || '').trim()
-	const userIndex = users.findIndex((user) => user.username.toLowerCase() === username.toLowerCase())
-
-	if (userIndex === -1) {
-		return res.status(404).send({
-			status: false,
-			msg: 'User not found.'
-		})
-	}
-
-	const [removedUser] = users.splice(userIndex, 1)
-
-	return res.send({
-		status: true,
-		msg: 'User removed successfully.',
-		data: sanitizeUser(removedUser)
-	})
-})
-
-app.get('/user-details', (req, res)=>{
-	res.sendFile(path.join(__dirname, '../templates', 'user-details.html'))
-})
-
-app.get(`/:name`,(req, res)=>{
-	const name = req.params.name;
-	console.log(`The name '${name}' was received in current request.`);
-	res.send({status:true, msg: `The name recieved in current request was : ${name}`});
-})
-
-
-export default app;
+export default app

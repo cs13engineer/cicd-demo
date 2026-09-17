@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In | CI/CD Services</title>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body class="app-shell auth-shell">
+    <main class="auth-layout auth-layout-compact">
+        <section class="auth-intro">
+            <a class="brand" href="/" aria-label="CI/CD Services home">
+                <span class="brand-mark">C</span> CI/CD SERVICES
+            </a>
+            <div class="auth-intro-copy">
+                <p class="eyebrow">Secure sign in</p>
+                <h1>Welcome to your workspace.</h1>
+                <p class="page-description">Choose your workspace role and continue with your credentials.</p>
+            </div>
+        </section>
+
+        <section class="auth-card" aria-labelledby="login-title">
+            <p class="eyebrow">Sign in</p>
+            <h2 id="login-title">Access your dashboard</h2>
+            <p id="activeClientId" class="modal-description"></p>
+            <form id="loginForm">
+                <div class="field">
+                    <label for="userType">User type</label>
+                    <select id="userType" name="userType" required>
+                        <option value="ADMIN">Admin</option>
+                        <option value="WAITER">Waiter</option>
+                        <option value="KITCHEN">Kitchen</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="username">Username</label>
+                    <input id="username" name="username" type="text" autocomplete="username" required>
+                </div>
+                <div class="field">
+                    <label for="password">Password</label>
+                    <input id="password" name="password" type="password" autocomplete="current-password" required>
+                </div>
+                <p id="loginError" class="error-message" role="alert"></p>
+                <button class="button button-primary button-wide" type="submit">Sign in</button>
+            </form>
+            <p class="auth-footer">Need a new account? <a href="/register">Register here</a></p>
+        </section>
+    </main>
+    <script>
+        const form = document.getElementById('loginForm');
+        const errorMessage = document.getElementById('loginError');
+        const clientId = sessionStorage.getItem('clientId');
+        document.getElementById('activeClientId').textContent = clientId ? `Workspace: ${clientId}` : 'Start with your client ID.';
+
+        if (!clientId) {
+            window.location.replace('/');
+        }
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            errorMessage.textContent = '';
+
+            try {
+                const response = await fetch('/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        clientId,
+                        userType: form.userType.value,
+                        username: form.username.value.trim(),
+                        password: form.password.value
+                    })
+                });
+                const result = await response.json();
+                if (!response.ok || !result.status) throw new Error(result.msg || 'Unable to sign in.');
+                sessionStorage.setItem('userType', result.user.userType || form.userType.value);
+                sessionStorage.setItem('username', result.user.username);
+                window.location.href = result.redirectTo;
+            } catch (error) {
+                errorMessage.textContent = error.message;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Restaurant Management</title>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body class="app-shell">
+    <header class="app-header">
+        <a class="brand" href="/admin"><span class="brand-mark">R</span> RESTAURANT OPS</a>
+        <nav class="app-nav" aria-label="Main navigation"><a class="nav-link nav-link-active" href="/admin">Admin</a><a class="nav-link" href="/client">Service</a><a class="nav-link" href="/reset-password">Password</a></nav>
+        <button class="button button-secondary" id="logoutButton">Sign out</button>
+    </header>
+
+    <main class="app-main">
+        <div class="page-heading">
+            <div><p class="eyebrow">Operations control</p><h1>Admin dashboard</h1><p class="page-description">Manage this restaurant's menu, floor plan, staff activity, and revenue.</p></div>
+            <span class="count-badge" id="clientId"></span>
+        </div>
+
+        <section class="kpi-grid" aria-label="Key performance indicators">
+            <article class="metric-card"><span class="metric-label">Revenue today</span><strong id="revenueToday">$0.00</strong></article>
+            <article class="metric-card"><span class="metric-label">Active orders</span><strong id="activeOrders">0</strong></article>
+            <article class="metric-card"><span class="metric-label">Occupied tables</span><strong id="occupiedTables">0 / 0</strong></article>
+            <article class="metric-card"><span class="metric-label">Top item</span><strong id="topItem">No sales yet</strong></article>
+        </section>
+
+        <div class="dashboard-grid">
+            <section class="panel dashboard-panel dashboard-panel-wide">
+                <div class="panel-header panel-header-row"><div><p class="eyebrow">Live service</p><h2>Active orders</h2></div><button class="button button-secondary" id="refreshOrders">Refresh</button></div>
+                <div id="ordersGrid" class="orders-grid"><p class="empty-state">Loading active orders...</p></div>
+            </section>
+
+            <section class="panel dashboard-panel">
+                <div class="panel-header"><p class="eyebrow">Menu management</p><h2 id="menuFormTitle">Add menu item</h2></div>
+                <form id="menuForm" class="dashboard-form">
+                    <input type="hidden" id="menuItemId">
+                    <div class="field"><label for="menuName">Name</label><input id="menuName" required></div>
+                    <div class="form-grid"><div class="field"><label for="menuPrice">Price</label><input id="menuPrice" type="number" min="0" step="0.01" required></div><div class="field"><label for="menuCategory">Category</label><input id="menuCategory"></div></div>
+                    <label class="check-field"><input id="menuAvailable" type="checkbox" checked> Available to order</label>
+                    <p id="menuError" class="error-message"></p><div class="actions"><button type="button" class="button button-secondary" id="cancelMenu">Clear</button><button class="button button-primary" type="submit">Save item</button></div>
+                </form>
+                <div class="table-wrap compact-table"><table><thead><tr><th>Item</th><th>Price</th><th>State</th><th></th></tr></thead><tbody id="menuBody"></tbody></table></div>
+            </section>
+
+            <section class="panel dashboard-panel">
+                <div class="panel-header"><p class="eyebrow">Floor plan</p><h2>Add dining table</h2></div>
+                <form id="tableForm" class="inline-form"><div class="field"><label for="tableNumber">Table number</label><input id="tableNumber" required></div><button class="button button-primary" type="submit">Add table</button></form>
+                <p id="tableError" class="error-message"></p>
+                <div class="table-list" id="tablesBody"></div>
+            </section>
+
+            <section class="panel dashboard-panel">
+                <div class="panel-header"><p class="eyebrow">Team</p><h2>Staff accounts</h2></div>
+                <form id="staffForm" class="dashboard-form"><div class="form-grid"><div class="field"><label for="staffUsername">Username</label><input id="staffUsername" required></div><div class="field"><label for="staffRole">Role</label><select id="staffRole"><option value="WAITER">Waiter</option><option value="KITCHEN">Kitchen</option></select></div><div class="field"><label for="staffPassword">Default password</label><input id="staffPassword" type="password" minlength="8" required></div><div class="field"><label for="staffFirstName">First name</label><input id="staffFirstName" required></div><div class="field full-width"><label for="staffLastName">Last name</label><input id="staffLastName" required></div></div><p id="staffError" class="error-message"></p><button class="button button-primary" type="submit">Create staff account</button></form>
+                <div class="table-wrap compact-table"><table><thead><tr><th>Username</th><th>Role</th><th>Name</th><th></th></tr></thead><tbody id="usersBody"></tbody></table></div>
+            </section>
+
+            <section class="panel dashboard-panel">
+                <div class="panel-header"><p class="eyebrow">Business intelligence</p><h2>Revenue history</h2></div><div id="revenueList" class="bar-list"></div>
+                <h3 class="subheading">Top-selling items</h3><div id="topItemsList" class="bar-list"></div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        const state = { menu: [], tables: [], users: [] };
+        const $ = (id) => document.getElementById(id);
+        const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character]));
+        const money = (value) => `$${Number(value || 0).toFixed(2)}`;
+        const api = async (path, options) => { const response = await fetch(path, options); const body = await response.json(); if (!response.ok || !body.status) throw new Error(body.msg || 'Request failed.'); return body.data; };
+        const json = (method, body) => ({ method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+
+        $('clientId').textContent = sessionStorage.getItem('clientId') || 'Current tenant';
+        $('logoutButton').addEventListener('click', () => { sessionStorage.clear(); window.location.href = '/'; });
+
+        function renderMenu() {
+            $('menuBody').innerHTML = state.menu.map((item) => `<tr><td>${escapeHtml(item.name)}<small>${escapeHtml(item.category_type || 'Uncategorized')}</small></td><td>${money(item.price)}</td><td>${item.is_available ? 'Available' : 'Hidden'}</td><td><button class="icon-button" data-edit-menu="${item.item_id}">Edit</button><button class="icon-button danger-text" data-delete-menu="${item.item_id}">Delete</button></td></tr>`).join('') || '<tr><td colspan="4">No menu items yet.</td></tr>';
+        }
+        function renderTables() {
+            $('tablesBody').innerHTML = state.tables.map((table) => `<div class="table-status"><span>Table ${escapeHtml(table.table_number)}</span><span class="status-pill ${table.is_occupied ? 'status-occupied' : 'status-free'}">${table.is_occupied ? 'Occupied' : 'Free'}</span><button class="icon-button" data-toggle-table="${table.table_id}">${table.is_occupied ? 'Free' : 'Occupy'}</button><button class="icon-button danger-text" data-delete-table="${table.table_id}">Delete</button></div>`).join('') || '<p class="empty-state">No tables configured.</p>';
+        }
+        function renderUsers() {
+            $('usersBody').innerHTML = state.users.map((user) => `<tr><td>${escapeHtml(user.username)}</td><td>${escapeHtml(user.user_type)}</td><td>${escapeHtml(`${user.first_name || ''} ${user.last_name || ''}`.trim())}</td><td><button class="icon-button danger-text" data-delete-user="${user.user_id}">Delete</button></td></tr>`).join('') || '<tr><td colspan="4">No staff accounts yet.</td></tr>';
+        }
+        async function loadData() {
+            const [menu, tables, users, analytics, orders] = await Promise.all([api('/api/admin/menu'), api('/api/admin/tables'), api('/api/users'), api('/api/admin/analytics'), api('/api/admin/orders/active')]);
+            state.menu = menu; state.tables = tables; state.users = users;
+            renderMenu(); renderTables(); renderUsers(); renderAnalytics(analytics); renderOrders(orders);
+        }
+        function renderAnalytics(data) {
+            const today = new Date().toISOString().slice(0, 10);
+            const todayRevenue = data.revenue.find((item) => String(item.day).slice(0, 10) === today)?.revenue || 0;
+            $('revenueToday').textContent = money(todayRevenue); $('activeOrders').textContent = data.activeOrders; $('occupiedTables').textContent = `${data.tables.occupied} / ${data.tables.occupied + data.tables.free}`; $('topItem').textContent = data.topItems[0]?.name || 'No sales yet';
+            const maxRevenue = Math.max(...data.revenue.map((item) => item.revenue), 1);
+            $('revenueList').innerHTML = data.revenue.map((item) => `<div class="bar-row"><span>${escapeHtml(String(item.day).slice(0, 10))}</span><div class="bar-track"><i style="width:${item.revenue / maxRevenue * 100}%"></i></div><strong>${money(item.revenue)}</strong></div>`).join('') || '<p class="empty-state">No revenue recorded.</p>';
+            const maxItems = Math.max(...data.topItems.map((item) => item.quantity), 1);
+            $('topItemsList').innerHTML = data.topItems.map((item) => `<div class="bar-row"><span>${escapeHtml(item.name)}</span><div class="bar-track"><i style="width:${item.quantity / maxItems * 100}%"></i></div><strong>${item.quantity}</strong></div>`).join('') || '<p class="empty-state">No item sales recorded.</p>';
+        }
+        function renderOrders(orders) {
+            $('ordersGrid').innerHTML = orders.map((order) => `<article class="order-card"><div class="order-card-header"><strong>Order #${order.order_id}</strong><span class="status-pill">${escapeHtml(order.order_status)}</span></div><p>Table ${escapeHtml(order.table_number)} · ${escapeHtml(order.served_by_name || 'Unknown staff')} · ${new Date(order.created_at).toLocaleString()}</p><ul>${order.items.map((item) => `<li><span>${item.quantity} × ${escapeHtml(item.name)}</span><strong>${money(item.line_total)}</strong></li>`).join('')}</ul><div class="order-total"><span>Total</span><strong>${money(order.total)}</strong></div></article>`).join('') || '<p class="empty-state">No active orders.</p>';
+        }
+        $('menuForm').addEventListener('submit', async (event) => { event.preventDefault(); const id = $('menuItemId').value; const body = { name: $('menuName').value.trim(), price: Number($('menuPrice').value), categoryType: $('menuCategory').value.trim(), isAvailable: $('menuAvailable').checked }; try { await api(id ? `/api/admin/menu/${id}` : '/api/admin/menu', json(id ? 'PUT' : 'POST', body)); resetMenuForm(); await loadData(); } catch (error) { $('menuError').textContent = error.message; } });
+        $('cancelMenu').addEventListener('click', resetMenuForm);
+        function resetMenuForm() { $('menuForm').reset(); $('menuItemId').value = ''; $('menuAvailable').checked = true; $('menuFormTitle').textContent = 'Add menu item'; $('menuError').textContent = ''; }
+        $('menuBody').addEventListener('click', async (event) => { const editId = event.target.dataset.editMenu; const deleteId = event.target.dataset.deleteMenu; try { if (editId) { const item = state.menu.find((entry) => String(entry.item_id) === editId); $('menuItemId').value = item.item_id; $('menuName').value = item.name; $('menuPrice').value = item.price; $('menuCategory').value = item.category_type || ''; $('menuAvailable').checked = Boolean(item.is_available); $('menuFormTitle').textContent = 'Edit menu item'; } if (deleteId && confirm('Delete this menu item?')) { await api(`/api/admin/menu/${deleteId}`, { method: 'DELETE' }); await loadData(); } } catch (error) { $('menuError').textContent = error.message; } });
+        $('tableForm').addEventListener('submit', async (event) => { event.preventDefault(); try { await api('/api/admin/tables', json('POST', { tableNumber: $('tableNumber').value.trim() })); event.currentTarget.reset(); $('tableError').textContent = ''; await loadData(); } catch (error) { $('tableError').textContent = error.message; } });
+        $('tablesBody').addEventListener('click', async (event) => { const toggle = event.target.dataset.toggleTable; const remove = event.target.dataset.deleteTable; try { if (toggle) { const table = state.tables.find((entry) => String(entry.table_id) === toggle); await api(`/api/admin/tables/${toggle}`, json('PATCH', { isOccupied: !table.is_occupied })); await loadData(); } if (remove && confirm('Delete this table?')) { await api(`/api/admin/tables/${remove}`, { method: 'DELETE' }); await loadData(); } } catch (error) { $('tableError').textContent = error.message; } });
+        $('staffForm').addEventListener('submit', async (event) => { event.preventDefault(); const form = event.currentTarget; const body = Object.fromEntries(new FormData(form)); try { await api('/api/users', json('POST', body)); form.reset(); $('staffError').textContent = ''; await loadData(); } catch (error) { $('staffError').textContent = error.message; } });
+        $('usersBody').addEventListener('click', async (event) => { const id = event.target.dataset.deleteUser; if (!id || !confirm('Delete this staff account?')) return; try { await api(`/api/users/${id}`, { method: 'DELETE' }); await loadData(); } catch (error) { $('staffError').textContent = error.message; } });
+        $('refreshOrders').addEventListener('click', loadData);
+        loadData().catch((error) => { $('ordersGrid').innerHTML = `<p class="error-message">${escapeHtml(error.message)}</p>`; });
+    </script>
+</body>
+</html>

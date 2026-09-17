@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "node index.js",
+    "dev": "nodemon ./src/server.js",
     "test": "mocha"
   },
   "repository": {
@@ -15,12 +15,17 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^5.2.1"
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mysql2": "^3.24.4"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
     "chai": "^6.2.2",
     "mocha": "^12.0.1",
+    "nodemon": "^3.1.14",
     "supertest": "^7.2.2"
   }
 }

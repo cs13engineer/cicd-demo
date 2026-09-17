@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waiter Workspace | Restaurant Management</title>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body class="app-shell">
+    <header class="app-header">
+        <a class="brand" href="/client"><span class="brand-mark">R</span> RESTAURANT OPS</a>
+        <nav class="app-nav" aria-label="Main navigation"><a class="nav-link nav-link-active" href="/client">Tables</a><a class="nav-link" href="/reset-password">Password</a></nav>
+        <button class="button button-secondary" id="logoutButton">Sign out</button>
+    </header>
+
+    <main class="app-main">
+        <div class="page-heading"><div><p class="eyebrow">Waiter workspace</p><h1>Take the next table.</h1><p class="page-description">Choose an available table, build its order, and keep your shift moving.</p></div><span class="count-badge" id="userName"></span></div>
+
+        <section class="waiter-kpis" aria-label="Today's personal performance">
+            <article class="metric-card"><span class="metric-label">Orders today</span><strong id="ordersToday">0</strong></article>
+            <article class="metric-card"><span class="metric-label">Active tables</span><strong id="activeTables">0</strong></article>
+            <article class="metric-card"><span class="metric-label">Completed sales</span><strong id="salesToday">$0.00</strong></article>
+        </section>
+
+        <div class="waiter-layout">
+            <section class="panel dashboard-panel">
+                <div class="panel-header panel-header-row"><div><p class="eyebrow">Step 1</p><h2>Select a table</h2></div><span class="selected-table-label" id="selectedTableLabel">No table selected</span></div>
+                <div class="table-grid" id="tablesGrid"><p class="empty-state">Loading tables...</p></div>
+            </section>
+
+            <section class="panel dashboard-panel">
+                <div class="panel-header panel-header-row"><div><p class="eyebrow">Step 2</p><h2>Build order</h2></div><span class="selected-table-label" id="cartCount">0 items</span></div>
+                <div class="menu-picker" id="menuPicker"><p class="empty-state">Select an available table first.</p></div>
+                <div class="cart-panel"><div class="panel-header-row"><h3>Current order</h3><strong id="cartTotal">$0.00</strong></div><ul id="cartList" class="cart-list"><li class="empty-state">Your order is empty.</li></ul><p id="orderError" class="error-message"></p><button class="button button-primary button-wide" id="submitOrder" disabled>Submit order</button></div>
+            </section>
+        </div>
+
+        <section class="panel dashboard-panel dashboard-panel-wide waiter-orders-panel">
+            <div class="panel-header panel-header-row"><div><p class="eyebrow">Shift history</p><h2>Your orders</h2></div><button class="button button-secondary" id="refreshData">Refresh</button></div>
+            <div id="ordersList" class="orders-grid"><p class="empty-state">Loading orders...</p></div>
+        </section>
+    </main>
+
+    <script>
+        const state = { tables: [], menu: [], cart: new Map(), selectedTable: null };
+        const $ = (id) => document.getElementById(id);
+        const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character]));
+        const money = (value) => `$${Number(value || 0).toFixed(2)}`;
+        const api = async (path, options) => { const response = await fetch(path, options); const body = await response.json(); if (!response.ok || !body.status) throw new Error(body.msg || 'Request failed.'); return body.data; };
+        const json = (method, body) => ({ method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+
+        $('userName').textContent = sessionStorage.getItem('username') || 'Waiter';
+        $('logoutButton').addEventListener('click', () => { sessionStorage.clear(); window.location.href = '/'; });
+
+        function renderTables() {
+            $('tablesGrid').innerHTML = state.tables.map((table) => `<button class="table-tile ${table.is_occupied ? 'table-tile-occupied' : 'table-tile-free'} ${state.selectedTable === table.table_id ? 'table-tile-selected' : ''}" data-table-id="${table.table_id}" ${table.is_occupied ? 'disabled' : ''}><strong>${escapeHtml(table.table_number)}</strong><span>${table.is_occupied ? 'Occupied' : 'Available'}</span></button>`).join('') || '<p class="empty-state">No dining tables configured.</p>';
+            $('tablesGrid').querySelectorAll('[data-table-id]').forEach((button) => button.addEventListener('click', () => { state.selectedTable = Number(button.dataset.tableId); const table = state.tables.find((entry) => entry.table_id === state.selectedTable); $('selectedTableLabel').textContent = `Table ${table.table_number}`; renderTables(); renderMenu(); }));
+        }
+        function renderMenu() {
+            const enabled = state.selectedTable !== null;
+            $('menuPicker').innerHTML = enabled ? state.menu.filter((item) => item.is_available).map((item) => `<div class="menu-choice"><div><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.category_type || 'Menu')} · ${money(item.price)}</small></div><button class="quantity-button" data-add-item="${item.item_id}">Add</button></div>`).join('') || '<p class="empty-state">No available menu items.</p>' : '<p class="empty-state">Select an available table first.</p>';
+            $('menuPicker').querySelectorAll('[data-add-item]').forEach((button) => button.addEventListener('click', () => { const item = state.menu.find((entry) => entry.item_id === Number(button.dataset.addItem)); const current = state.cart.get(item.item_id) || { ...item, quantity: 0 }; current.quantity += 1; state.cart.set(item.item_id, current); renderCart(); }));
+        }
+        function renderCart() {
+            const items = [...state.cart.values()];
+            $('cartCount').textContent = `${items.reduce((sum, item) => sum + item.quantity, 0)} item${items.length === 1 ? '' : 's'}`;
+            $('cartList').innerHTML = items.map((item) => `<li><span>${item.quantity} × ${escapeHtml(item.name)}</span><span>${money(item.price * item.quantity)} <button class="icon-button danger-text" data-remove-item="${item.item_id}">Remove</button></span></li>`).join('') || '<li class="empty-state">Your order is empty.</li>';
+            $('cartTotal').textContent = money(items.reduce((sum, item) => sum + item.price * item.quantity, 0));
+            $('submitOrder').disabled = state.selectedTable === null || items.length === 0;
+            $('cartList').querySelectorAll('[data-remove-item]').forEach((button) => button.addEventListener('click', () => { state.cart.delete(Number(button.dataset.removeItem)); renderCart(); }));
+        }
+        function renderOrders(orders) {
+            $('ordersList').innerHTML = orders.map((order) => `<article class="order-card"><div class="order-card-header"><strong>Order #${order.order_id} · Table ${escapeHtml(order.table_number)}</strong><span class="status-pill">${escapeHtml(order.order_status)}</span></div><p>${new Date(order.created_at).toLocaleString()}</p><ul>${order.items.map((item) => `<li><span>${item.quantity} × ${escapeHtml(item.name)}</span><strong>${money(item.line_total)}</strong></li>`).join('')}</ul><div class="order-total"><strong>Total ${money(order.total)}</strong><span class="order-actions">${order.order_status === 'PENDING' ? '<button class="icon-button" data-status="SERVED">Mark served</button>' : ''}${order.order_status === 'SERVED' ? '<button class="icon-button" data-status="COMPLETED">Complete</button>' : ''}${['PENDING', 'SERVED'].includes(order.order_status) ? '<button class="icon-button danger-text" data-status="CANCELLED">Cancel</button>' : ''}</span></div></article>`).join('') || '<p class="empty-state">No orders handled during this shift.</p>';
+            $('ordersList').querySelectorAll('[data-status]').forEach((button) => button.addEventListener('click', async () => { try { await api(`/api/orders/${button.closest('.order-card').querySelector('strong').textContent.match(/#(\d+)/)[1]}`, json('PATCH', { status: button.dataset.status })); await loadData(); } catch (error) { $('orderError').textContent = error.message; } }));
+        }
+        async function loadData() { const [tables, menu, stats, orders] = await Promise.all([api('/api/tables'), api('/api/menu'), api('/api/waiter/stats'), api('/api/waiter/orders/history?status=ALL')]); state.tables = tables; state.menu = menu; $('ordersToday').textContent = stats.ordersToday; $('activeTables').textContent = stats.activeTables; $('salesToday').textContent = money(stats.salesToday); renderTables(); renderMenu(); renderCart(); renderOrders(orders); }
+        $('submitOrder').addEventListener('click', async () => { try { await api('/api/orders', json('POST', { tableId: state.selectedTable, items: [...state.cart.values()].map((item) => ({ itemId: item.item_id, quantity: item.quantity })) })); state.cart.clear(); state.selectedTable = null; $('selectedTableLabel').textContent = 'No table selected'; $('orderError').textContent = ''; await loadData(); } catch (error) { $('orderError').textContent = error.message; } });
+        $('refreshData').addEventListener('click', loadData);
+        loadData().catch((error) => { $('orderError').textContent = error.message; });
+    </script>
+</body>
+</html>

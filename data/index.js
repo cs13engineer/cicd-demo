@@ -4,6 +4,7 @@ const users = [
         password: "johndoe123",
         name:"John Doe",
         designation: "Developer",
+        userType: "client",
         hobies:["Learning new things"]
     }
 ]
